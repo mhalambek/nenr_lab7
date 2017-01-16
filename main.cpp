@@ -90,7 +90,7 @@ int main(int argc, char** argv)
   cin.tie(NULL);
   Dataset set("./dataset.txt");
 
-  vector<unsigned int> layout({ 2, 8, 4, 3 });
+  vector<unsigned int> layout({ 2, 8, 3 });
 
   const unsigned int populationSize = 20;
   const unsigned int maxIter = 100000;

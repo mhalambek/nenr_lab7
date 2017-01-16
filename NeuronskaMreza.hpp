@@ -9,10 +9,10 @@
 using namespace std;
 
 struct N1 {
-  vector<double*> w;
-  vector<double*> s;
+  double* w;
+  double* s;
 
-  N1(vector<double*> _w, vector<double*> _s)
+  N1(double* _w, double* _s)
       : w{ _w }
       , s{ _s }
   {
@@ -21,12 +21,10 @@ struct N1 {
   double operator()(vector<double> x)
   {
     vector<double> ret;
-    assert(x.size() == w.size());
-    assert(x.size() == s.size());
     double sum = 0;
 
     for (unsigned int i = 0; i < x.size(); ++i) {
-      sum += abs(x[i] - *w[i]) / abs(*s[i]);
+      sum += abs(x[i] - w[i]) / abs(s[i]);
     }
 
     return 1.0 / (1.0 + sum);
@@ -34,9 +32,9 @@ struct N1 {
 };
 
 struct N2 {
-  vector<double*> w;
+  double* w;
 
-  N2(vector<double*> _w)
+  N2(double* _w)
       : w{ _w } {};
 
   double sigmoid(double t)
@@ -47,11 +45,10 @@ struct N2 {
   double operator()(vector<double> x)
   {
     vector<double> ret;
-    assert(x.size() == (w.size() - 1));
-    double sum = *w[0];
+    double sum = w[0];
 
-    for (unsigned int i = 1; i < w.size(); ++i) {
-      sum += x[i - 1] * *w[i];
+    for (unsigned int i = 0; i < x.size(); ++i) {
+      sum += x[i] * w[i + 1];
     }
 
     return sigmoid(sum);
@@ -107,24 +104,14 @@ struct NeuronskaMreza {
     for (unsigned int i = 0; i < layout[1]; ++i) {
       vector<double*> w;
       vector<double*> s;
-      for (unsigned int j = 0; j < layout[0]; ++j) {
-        w.push_back(&params[lastIndex++]);
-      }
-      for (unsigned int j = 0; j < layout[0]; ++j) {
-        s.push_back(&params[lastIndex++]);
-      }
-      secondLayer.push_back(N1(w, s));
+      secondLayer.push_back(N1(&params[lastIndex], &params[lastIndex + layout[0]]));
+      lastIndex += 2 * layout[0];
     }
     for (unsigned int i = 2; i < layout.size(); ++i) {
       otherLayers.push_back(vector<N2>());
       for (unsigned int k = 0; k < layout[i]; ++k) {
-        vector<double*> w;
-        //bias
-        w.push_back(&params[lastIndex++]);
-        for (unsigned int j = 0; j < layout[i - 1]; ++j) {
-          w.push_back(&params[lastIndex++]);
-        }
-        otherLayers.back().push_back(N2(w));
+        otherLayers.back().push_back(N2(&params[lastIndex]));
+        lastIndex += layout[i - 1] + 1;
       }
     }
   };
@@ -134,38 +121,26 @@ struct NeuronskaMreza {
     assert(layout.size() >= 3);
     assert(layout[0] == 2);
     assert(layout.back() == 3);
-    //TODO hack
     params.reserve(totalSize(layout) * sizeof(double));
+    unsigned int lastIndex = 0;
     for (unsigned int i = 0; i < layout[1]; ++i) {
-      //TODO randomize vals
-      vector<double*> w;
-      vector<double*> s;
-      for (unsigned int j = 0; j < layout[0]; ++j) {
+      for (unsigned int j = 0; j < layout[0] * 2; ++j) {
         params.push_back(getRandDouble());
-        w.push_back(&params[params.size() - 1]);
       }
-      for (unsigned int j = 0; j < layout[0]; ++j) {
-        params.push_back(getRandDouble());
-        s.push_back(&params[params.size() - 1]);
-      }
-      secondLayer.push_back(N1(w, s));
+      secondLayer.push_back(N1(&params[lastIndex], &params[lastIndex + layout[0]]));
+      lastIndex += 2 * layout[0];
     }
+    cout << params.size() << endl;
     for (unsigned int i = 2; i < layout.size(); ++i) {
       otherLayers.push_back(vector<N2>());
       for (unsigned int k = 0; k < layout[i]; ++k) {
-        vector<double*> w;
-        //bias
-        params.push_back(getRandDouble());
-        w.push_back(&params[params.size() - 1]);
-        for (unsigned int j = 0; j < layout[i - 1]; ++j) {
+        for (unsigned int j = 0; j < layout[i - 1] + 1; ++j) {
           params.push_back(getRandDouble());
-          w.push_back(&params[params.size() - 1]);
         }
-        otherLayers.back().push_back(N2(w));
+        otherLayers.back().push_back(N2(&params[lastIndex]));
+        lastIndex += layout[i - 1] + 1;
       }
     }
-    //TODO hack doesn't work
-    assert(params.size() < 1024);
   }
   NeuronskaMreza(vector<double> pars, vector<unsigned int> _lay)
       : layout{ _lay }
@@ -175,24 +150,14 @@ struct NeuronskaMreza {
     for (unsigned int i = 0; i < layout[1]; ++i) {
       vector<double*> w;
       vector<double*> s;
-      for (unsigned int j = 0; j < layout[0]; ++j) {
-        w.push_back(&params[lastIndex++]);
-      }
-      for (unsigned int j = 0; j < layout[0]; ++j) {
-        s.push_back(&params[lastIndex++]);
-      }
-      secondLayer.push_back(N1(w, s));
+      secondLayer.push_back(N1(&params[lastIndex], &params[lastIndex + layout[0]]));
+      lastIndex += 2 * layout[0];
     }
     for (unsigned int i = 2; i < layout.size(); ++i) {
       otherLayers.push_back(vector<N2>());
       for (unsigned int k = 0; k < layout[i]; ++k) {
-        vector<double*> w;
-        //bias
-        w.push_back(&params[lastIndex++]);
-        for (unsigned int j = 0; j < layout[i - 1]; ++j) {
-          w.push_back(&params[lastIndex++]);
-        }
-        otherLayers.back().push_back(N2(w));
+        otherLayers.back().push_back(N2(&params[lastIndex]));
+        lastIndex += layout[i - 1] + 1;
       }
     }
   };
