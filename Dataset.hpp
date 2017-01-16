@@ -32,4 +32,6 @@ class Dataset {
 
     sourceFileStream.close();
   }
+  auto begin() { return data.begin(); };
+  auto end() { return data.end(); };
 };
