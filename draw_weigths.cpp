@@ -45,6 +45,7 @@ void activeMouseMove(int x, int y)
   // glFlush(); // Render now
 }
 
+string n1Path = "./n1.txt";
 void init()
 {
   /* select clearing (background) color */
@@ -58,11 +59,16 @@ void init()
   /* initialize viewing values */
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
-  ifstream sourceFilePath("./n1.txt");
+  ifstream sourceFilePath(n1Path);
   string line;
   glPointSize(10);
-  glColor3f(1.0f, 0.0f, 0.0f);
+  int color = 0;
   while (getline(sourceFilePath, line)) {
+    if (color % 2 == 0) {
+      glColor3f(1.0f, 0.0f, 0.0f);
+    } else {
+      glColor3f(0.0f, 1.0f, 0.0f);
+    }
     double x, y;
     istringstream fin(line);
     fin >> x;
@@ -70,6 +76,7 @@ void init()
     glBegin(GL_POINTS);
     glVertex2f(x * heigth, y * width);
     glEnd();
+    color++;
   }
   glutSwapBuffers();
 }
@@ -77,14 +84,8 @@ void init()
 /* Main function: GLUT runs as a console application starting at main()  */
 int main(int argc, char** argv)
 {
-  // cout << "argc: " << argc << endl;
-  // for (int i = 0; i < argc; ++i) {
-  //   cout << argv[i] << endl;
-  // }
   if (argc > 1) {
-    M = stoi(argv[1]);
-  } else {
-    M = 10;
+    n1Path = string(argv[1]);
   }
 
   signal(SIGINT, killHandler);
