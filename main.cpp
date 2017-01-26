@@ -1,72 +1,13 @@
 #include "Dataset.hpp"
 #include "NeuronskaMreza.hpp"
+#include "Sol.hpp"
+#include "crossing.hpp"
 #include "utils.hpp"
 #include <cassert>
 #include <iostream>
 #include <random>
 
-struct Sol {
-  NeuronskaMreza nen;
-  double fit;
-  double err;
-  Sol(NeuronskaMreza n, Dataset& set)
-      : nen{ n }
-  {
-    err = n.calcError(set);
-    fit = 1 / err;
-  }
-  Sol(NeuronskaMreza n, double _err)
-      : nen{ n }
-  {
-    err = _err;
-    fit = 1 / err;
-  }
-};
-
 Sol* best = nullptr;
-
-void scaleFitness(vector<Sol>& pop)
-{
-  double sum = 0,
-         min = 100000;
-
-  if (best == nullptr) {
-    best = new Sol(NeuronskaMreza(pop.front().nen.params, pop.front().nen.layout), pop.front().err);
-  }
-
-  for (auto& s : pop) {
-    if (s.err < best->err) {
-      free(best);
-      best = new Sol(s.nen, s.err);
-    }
-    sum += s.fit;
-    if (s.fit < min) {
-      min = s.fit;
-    }
-  }
-
-  sum -= min * pop.size();
-  for (auto& s : pop) {
-    s.fit -= min;
-    s.fit /= sum;
-  }
-}
-
-Sol& select(vector<Sol>& pop)
-{
-  static random_device dev;
-  static auto dis = uniform_real_distribution<double>(0, 1);
-  double ch = dis(dev);
-
-  for (auto& p : pop) {
-    ch -= p.fit;
-    if (ch < 0) {
-      return p;
-    }
-  }
-
-  return pop.back();
-}
 
 void killHandler(int signum)
 {
@@ -89,41 +30,54 @@ int main(int argc, char** argv)
   signal(SIGINT, killHandler);
   ios_base::sync_with_stdio(false);
   cin.tie(NULL);
-  Dataset set("./dataset.txt");
+  string datasetPath = "./dataset.txt";
 
-  vector<unsigned int> layout({ 2, 4, 3 });
+  if (argc > 1) {
+    datasetPath = argv[1];
+  }
+
+  Dataset set(datasetPath.c_str());
+
+  vector<unsigned int> layout({ 2, 8, 4, 3 });
 
   const unsigned int populationSize = 20;
   const unsigned int maxIter = 100000;
+
+  //initialize population
   vector<Sol> population;
+  population.reserve(populationSize);
+
   for (unsigned int i = 0; i < populationSize; ++i) {
     population.push_back(Sol(NeuronskaMreza(layout), set));
   }
 
-  // double sum = 0;
-  // for (auto p : population) {
-  //   sum += p.fit;
-  // }
-  // assert(sum > 0.999);
+  //mutate operator
   Mutate mutate(0.1, 2, 0.95, 0.02);
 
   for (unsigned int currentIter = 0; currentIter < maxIter; ++currentIter) {
-    scaleFitness(population);
+
+    scaleFitness(population, &best);
     vector<Sol> nextGen;
-    cout << "iter: " << currentIter << ", best mse: " << best->err << endl;
+    nextGen.reserve(populationSize);
+
+    cout << "iter: " << currentIter << ", best MSE : " << best->err << endl;
+
     nextGen.push_back(*best);
 
     while (nextGen.size() != populationSize) {
       auto mom = select(population);
       auto dad = select(population);
+      //TODO
       auto childGenom = mom.nen.params * dad.nen.params;
       mutate(childGenom);
       Sol s(NeuronskaMreza(childGenom, layout), set);
       nextGen.push_back(s);
     }
+
     population = nextGen;
   }
 
+  //log best to console on kill
   killHandler(0);
 
   return 0;

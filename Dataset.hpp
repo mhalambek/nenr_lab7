@@ -12,9 +12,10 @@ struct Sample {
 };
 
 class Dataset {
-  public:
+  private:
   vector<Sample> data;
 
+  public:
   Dataset(const char* sourceFilePath)
   {
     ifstream sourceFileStream(sourceFilePath);
@@ -31,7 +32,9 @@ class Dataset {
     }
 
     sourceFileStream.close();
-  }
-  auto begin() { return data.begin(); };
-  auto end() { return data.end(); };
+  };
+
+  auto begin() const { return data.begin(); };
+  auto end() const { return data.end(); };
+  auto size() const { return data.size(); };
 };

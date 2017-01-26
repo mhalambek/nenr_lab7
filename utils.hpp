@@ -1,54 +1,18 @@
 #pragma once
+#include "Sol.hpp"
 #include <cassert>
-#include <iostream>
+#include <limits>
 #include <random>
 
 using namespace std;
 
 ostream& operator<<(ostream& os, const vector<double>& obj)
 {
-  // os << obj.getXYZ() << obj.getABC() << '\n';
   for (double d : obj) {
     os << d << " ";
   }
 
   return os;
-}
-
-vector<double> operator*(const vector<double>& mom, const vector<double>& dad)
-{
-  static random_device dev;
-  vector<double> ret;
-  ret.reserve(mom.size());
-  assert(mom.size() == dad.size());
-  static uniform_real_distribution<double> dis(0, 1);
-  double num = dis(dev);
-  if (num < 0.1) {
-    for (unsigned int i = 0; i < mom.size(); ++i) {
-      ret.push_back((mom[i] + dad[i]) / 2);
-    }
-  } else if (num < 0.3) {
-    for (unsigned int i = 0; i < mom.size(); ++i) {
-      if (dis(dev) > 0.5) {
-        ret.push_back(mom[i]);
-      } else {
-        ret.push_back(dad[i]);
-      }
-    }
-  } else {
-    static uniform_int_distribution<unsigned int> posDis(0, mom.size() - 1);
-    unsigned int crossPos = posDis(dev);
-
-    for (unsigned int i = 0; i < crossPos; ++i) {
-      ret.push_back(mom[i]);
-    }
-    for (unsigned int i = crossPos; i < dad.size(); ++i) {
-      ret.push_back(dad[i]);
-    }
-  }
-
-  assert(ret.size() == mom.size());
-  return ret;
 }
 
 class Mutate {
@@ -57,9 +21,9 @@ class Mutate {
   random_device dev;
   uniform_real_distribution<double> chooser;
   normal_distribution<double> dis1, dis2;
-  Mutate(double s1, double s2, double _v1, double _mutate)
-      : v1{ _v1 }
-      , mutationChance{ _mutate }
+  Mutate(double s1, double s2, double v1, double mutate)
+      : v1{ v1 }
+      , mutationChance{ mutate }
   {
     chooser = uniform_real_distribution<double>(0, 1);
     dis1 = normal_distribution<double>(0, s1);
@@ -82,3 +46,46 @@ class Mutate {
     }
   };
 };
+
+void scaleFitness(vector<Sol>& pop, Sol** best)
+{
+  double sum = 0,
+         min = std::numeric_limits<double>::max();
+
+  if (*best == nullptr) {
+    *best = new Sol(NeuronskaMreza(pop.front().nen.params, pop.front().nen.layout), pop.front().err);
+  }
+
+  for (auto& s : pop) {
+    if (s.err < (*best)->err) {
+      free(*best);
+      *best = new Sol(s.nen, s.err);
+    }
+    sum += s.fit;
+    if (s.fit < min) {
+      min = s.fit;
+    }
+  }
+
+  sum -= min * pop.size();
+  for (auto& s : pop) {
+    s.fit -= min;
+    s.fit /= sum;
+  }
+}
+
+const Sol& select(const vector<Sol>& pop)
+{
+  static random_device dev;
+  static auto dis = uniform_real_distribution<double>(0, 1);
+  double ch = dis(dev);
+
+  for (auto& p : pop) {
+    ch -= p.fit;
+    if (ch < 0) {
+      return p;
+    }
+  }
+
+  return pop.back();
+}
