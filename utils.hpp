@@ -1,5 +1,5 @@
 #pragma once
-#include "Sol.hpp"
+#include "Solution.hpp"
 #include <cassert>
 #include <limits>
 #include <random>
@@ -47,19 +47,19 @@ class Mutate {
   };
 };
 
-void scaleFitness(vector<Sol>& pop, Sol** best)
+void scaleFitness(vector<Solution>& pop, Solution** best)
 {
   double sum = 0,
          min = std::numeric_limits<double>::max();
 
   if (*best == nullptr) {
-    *best = new Sol(NeuronskaMreza(pop.front().nen.params, pop.front().nen.layout), pop.front().err);
+    *best = new Solution(NeuralNetwork(pop.front().nen.params, pop.front().nen.layout), pop.front().err);
   }
 
   for (auto& s : pop) {
     if (s.err < (*best)->err) {
       free(*best);
-      *best = new Sol(s.nen, s.err);
+      *best = new Solution(s.nen, s.err);
     }
     sum += s.fit;
     if (s.fit < min) {
@@ -74,7 +74,7 @@ void scaleFitness(vector<Sol>& pop, Sol** best)
   }
 }
 
-const Sol& select(const vector<Sol>& pop)
+const Solution& select(const vector<Solution>& pop)
 {
   static random_device dev;
   static auto dis = uniform_real_distribution<double>(0, 1);

@@ -1,13 +1,13 @@
 #include "Dataset.hpp"
-#include "NeuronskaMreza.hpp"
-#include "Sol.hpp"
+#include "NeuralNetwork.hpp"
+#include "Solution.hpp"
 #include "crossing.hpp"
 #include "utils.hpp"
 #include <cassert>
 #include <iostream>
 #include <random>
 
-Sol* best = nullptr;
+Solution* best = nullptr;
 
 void killHandler(int signum)
 {
@@ -44,11 +44,11 @@ int main(int argc, char** argv)
   const unsigned int maxIter = 100000;
 
   //initialize population
-  vector<Sol> population;
+  vector<Solution> population;
   population.reserve(populationSize);
 
   for (unsigned int i = 0; i < populationSize; ++i) {
-    population.push_back(Sol(NeuronskaMreza(layout), set));
+    population.push_back(Solution(NeuralNetwork(layout), set));
   }
 
   //mutate operator
@@ -57,7 +57,7 @@ int main(int argc, char** argv)
   for (unsigned int currentIter = 0; currentIter < maxIter; ++currentIter) {
 
     scaleFitness(population, &best);
-    vector<Sol> nextGen;
+    vector<Solution> nextGen;
     nextGen.reserve(populationSize);
 
     cout << "iter: " << currentIter << ", best MSE : " << best->err << endl;
@@ -70,8 +70,7 @@ int main(int argc, char** argv)
       //TODO
       auto childGenom = mom.nen.params * dad.nen.params;
       mutate(childGenom);
-      Sol s(NeuronskaMreza(childGenom, layout), set);
-      nextGen.push_back(s);
+      nextGen.push_back(Solution(NeuralNetwork(childGenom, layout), set));
     }
 
     population = nextGen;

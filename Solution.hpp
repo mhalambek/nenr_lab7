@@ -1,19 +1,19 @@
 #pragma once
-#include "NeuronskaMreza.hpp"
+#include "NeuralNetwork.hpp"
 
-struct Sol {
-  NeuronskaMreza nen;
+struct Solution {
+  NeuralNetwork nen;
   double err;
   double fit;
 
-  Sol(NeuronskaMreza n, const Dataset& set)
+  Solution(NeuralNetwork n, const Dataset& set)
       : nen{ n }
   {
     err = n.calcError(set);
     fit = 1 / err;
   };
 
-  Sol(NeuronskaMreza n, double err)
+  Solution(NeuralNetwork n, double err)
       : nen{ n }
       , err{ err }
       , fit{ 1 / err } {};

@@ -18,7 +18,7 @@ double getRandDouble()
   return dis(dev);
 }
 
-class NeuronskaMreza {
+class NeuralNetwork {
   private:
   void makeNetwork()
   {
@@ -53,7 +53,7 @@ class NeuronskaMreza {
   vector<RBFNeuron> secondLayer;
   vector<vector<SigmoidNeuron> > otherLayers;
   vector<double> params;
-  NeuronskaMreza(const char* filePath)
+  NeuralNetwork(const char* filePath)
   {
     ifstream fileStream(filePath);
     string line;
@@ -77,14 +77,14 @@ class NeuronskaMreza {
     makeNetwork();
   };
 
-  NeuronskaMreza(const NeuronskaMreza& ann)
+  NeuralNetwork(const NeuralNetwork& ann)
       : layout{ ann.layout }
       , params{ ann.params }
   {
     makeNetwork();
   };
 
-  NeuronskaMreza(vector<unsigned int> layout)
+  NeuralNetwork(vector<unsigned int> layout)
       : layout{ layout }
   {
     assert(layout.size() >= 3);
@@ -101,7 +101,7 @@ class NeuronskaMreza {
     makeNetwork();
   };
 
-  NeuronskaMreza(vector<double> params, vector<unsigned int> layout)
+  NeuralNetwork(vector<double> params, vector<unsigned int> layout)
       : layout{ layout }
       , params{ params }
   {
