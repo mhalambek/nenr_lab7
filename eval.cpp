@@ -54,8 +54,9 @@ void scaleFitness(vector<Sol>& pop)
 
 Sol& select(vector<Sol>& pop)
 {
-  random_device dev;
-  double ch = uniform_real_distribution<double>(0, 1)(dev);
+  static random_device dev;
+  static auto dis = uniform_real_distribution<double>(0, 1);
+  double ch = dis(dev);
 
   for (auto& p : pop) {
     ch -= p.fit;

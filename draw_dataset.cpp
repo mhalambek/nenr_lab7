@@ -58,14 +58,17 @@ void init()
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
   Dataset set("./dataset.txt");
+  int counter = 0;
   for (auto t : set.data) {
     glPointSize(4);
     glColor3f(t.A, t.B, t.C);
     glBegin(GL_POINTS);
     glVertex2f(t.x * heigth, t.y * width);
     glEnd();
-    glutSwapBuffers();
+    ++counter;
   }
+  glutSwapBuffers();
+  cout << counter << endl;
 }
 
 /* Main function: GLUT runs as a console application starting at main()  */

@@ -17,10 +17,11 @@ ostream& operator<<(ostream& os, const vector<double>& obj)
 
 vector<double> operator*(const vector<double>& mom, const vector<double>& dad)
 {
-  random_device dev;
+  static random_device dev;
   vector<double> ret;
+  ret.reserve(mom.size());
   assert(mom.size() == dad.size());
-  uniform_real_distribution<double> dis(0, 1);
+  static uniform_real_distribution<double> dis(0, 1);
   double num = dis(dev);
   if (num < 0.1) {
     for (unsigned int i = 0; i < mom.size(); ++i) {
@@ -35,7 +36,7 @@ vector<double> operator*(const vector<double>& mom, const vector<double>& dad)
       }
     }
   } else {
-    uniform_int_distribution<unsigned int> posDis(0, mom.size() - 1);
+    static uniform_int_distribution<unsigned int> posDis(0, mom.size() - 1);
     unsigned int crossPos = posDis(dev);
 
     for (unsigned int i = 0; i < crossPos; ++i) {

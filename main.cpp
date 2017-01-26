@@ -54,8 +54,9 @@ void scaleFitness(vector<Sol>& pop)
 
 Sol& select(vector<Sol>& pop)
 {
-  random_device dev;
-  double ch = uniform_real_distribution<double>(0, 1)(dev);
+  static random_device dev;
+  static auto dis = uniform_real_distribution<double>(0, 1);
+  double ch = dis(dev);
 
   for (auto& p : pop) {
     ch -= p.fit;
@@ -90,7 +91,7 @@ int main(int argc, char** argv)
   cin.tie(NULL);
   Dataset set("./dataset.txt");
 
-  vector<unsigned int> layout({ 2, 8, 3 });
+  vector<unsigned int> layout({ 2, 4, 3 });
 
   const unsigned int populationSize = 20;
   const unsigned int maxIter = 100000;

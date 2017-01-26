@@ -18,9 +18,8 @@ struct N1 {
   {
   }
 
-  double operator()(vector<double> x)
+  double operator()(const vector<double>& x)
   {
-    vector<double> ret;
     double sum = 0;
 
     for (unsigned int i = 0; i < x.size(); ++i) {
@@ -34,17 +33,15 @@ struct N1 {
 struct N2 {
   double* w;
 
-  N2(double* _w)
-      : w{ _w } {};
-
+  N2(double* w)
+      : w{ w } {};
   double sigmoid(double t)
   {
     return 1 / (1 + exp(-t));
   };
 
-  double operator()(vector<double> x)
+  double operator()(const vector<double>& x)
   {
-    vector<double> ret;
     double sum = w[0];
 
     for (unsigned int i = 0; i < x.size(); ++i) {
@@ -55,12 +52,12 @@ struct N2 {
   };
 };
 
-random_device dev;
-
 double getRandDouble()
 {
+  static random_device dev;
+  static auto dis = uniform_real_distribution<>(-2.0, 2.0);
 
-  return uniform_real_distribution<>(-2.0, 2.0)(dev);
+  return dis(dev);
 }
 
 unsigned int totalSize(vector<unsigned int> vec)
@@ -102,13 +99,12 @@ struct NeuronskaMreza {
 
     unsigned int lastIndex = 0;
     for (unsigned int i = 0; i < layout[1]; ++i) {
-      vector<double*> w;
-      vector<double*> s;
       secondLayer.push_back(N1(&params[lastIndex], &params[lastIndex + layout[0]]));
       lastIndex += 2 * layout[0];
     }
     for (unsigned int i = 2; i < layout.size(); ++i) {
       otherLayers.push_back(vector<N2>());
+      otherLayers.back().reserve(100);
       for (unsigned int k = 0; k < layout[i]; ++k) {
         otherLayers.back().push_back(N2(&params[lastIndex]));
         lastIndex += layout[i - 1] + 1;
@@ -123,14 +119,16 @@ struct NeuronskaMreza {
     assert(layout.back() == 3);
     params.reserve(totalSize(layout) * sizeof(double));
     unsigned int lastIndex = 0;
+
     for (unsigned int i = 0; i < layout[1]; ++i) {
+
       for (unsigned int j = 0; j < layout[0] * 2; ++j) {
         params.push_back(getRandDouble());
       }
       secondLayer.push_back(N1(&params[lastIndex], &params[lastIndex + layout[0]]));
       lastIndex += 2 * layout[0];
     }
-    cout << params.size() << endl;
+
     for (unsigned int i = 2; i < layout.size(); ++i) {
       otherLayers.push_back(vector<N2>());
       for (unsigned int k = 0; k < layout[i]; ++k) {

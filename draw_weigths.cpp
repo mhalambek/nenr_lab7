@@ -1,3 +1,4 @@
+#include "Dataset.hpp"
 #include <GLUT/glut.h> // GLUT, include glu.h and gl.h
 #include <cassert>
 #include <fstream>
@@ -61,6 +62,17 @@ void init()
   glLoadIdentity();
   ifstream sourceFilePath(n1Path);
   string line;
+  glPointSize(4);
+  Dataset set("./dataset.txt");
+  int counter = 0;
+  for (auto t : set.data) {
+    glPointSize(4);
+    glColor3f(t.A, t.B, t.C);
+    glBegin(GL_POINTS);
+    glVertex2f(t.x * heigth, t.y * width);
+    glEnd();
+    ++counter;
+  }
   glPointSize(10);
   int color = 0;
   while (getline(sourceFilePath, line)) {
