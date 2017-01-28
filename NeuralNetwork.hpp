@@ -24,14 +24,14 @@ class NeuralNetwork {
   {
     unsigned int lastIndex = 0;
     for (unsigned int i = 0; i < layout[1]; ++i) {
-      secondLayer.push_back(RBFNeuron(&params[lastIndex], &params[lastIndex + layout[0]]));
+      secondLayer.push_back(RBFNeuron(lastIndex));
       lastIndex += 2 * layout[0];
     }
     for (unsigned int i = 2; i < layout.size(); ++i) {
       otherLayers.push_back(vector<SigmoidNeuron>());
       otherLayers.back().reserve(100);
       for (unsigned int k = 0; k < layout[i]; ++k) {
-        otherLayers.back().push_back(SigmoidNeuron(&params[lastIndex]));
+        otherLayers.back().push_back(SigmoidNeuron(lastIndex));
         lastIndex += layout[i - 1] + 1;
       }
     }
@@ -116,7 +116,7 @@ class NeuralNetwork {
     n.reserve(secondLayer.size());
 
     for (auto& neuron : secondLayer) {
-      n.push_back(neuron(in));
+      n.push_back(neuron(in, params));
     }
 
     in = n;
@@ -125,7 +125,7 @@ class NeuralNetwork {
     for (auto& layer : otherLayers) {
       n.reserve(layer.size());
       for (auto& neuron : layer) {
-        n.push_back(neuron(in));
+        n.push_back(neuron(in, params));
       }
       in = n;
       n.clear();
