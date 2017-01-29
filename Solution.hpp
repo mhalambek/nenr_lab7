@@ -1,21 +1,43 @@
 #pragma once
 #include "NeuralNetwork.hpp"
+#include "crossing.hpp"
+#include <iostream>
+#include <vector>
 
-template <typename S>
+double getRandDouble()
+{
+  static random_device dev;
+  static auto dis = uniform_real_distribution<>(-2.0, 2.0);
+
+  return dis(dev);
+}
+
 struct Solution {
-  S nen;
+  vector<double> sol;
   double err;
   double fit;
 
-  Solution(S n, const Dataset& set)
-      : nen{ n }
+  Solution(){};
+
+  Solution(const Solution& obj)
+      : sol{ obj.sol }
+      , err{ obj.err }
+      , fit{ obj.fit } {};
+
+  Solution(unsigned int size)
   {
-    err = n.calcError(set);
-    fit = 1 / err;
+    sol = vector<double>(size);
+    for (auto& d : sol) {
+      d = getRandDouble();
+    }
   };
 
-  Solution(S n, double err)
-      : nen{ n }
-      , err{ err }
-      , fit{ 1 / err } {};
+  Solution operator*(const Solution& obj) const
+  {
+    Solution ret;
+
+    ret.sol = obj.sol * sol;
+
+    return ret;
+  };
 };

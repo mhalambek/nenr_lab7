@@ -7,17 +7,14 @@
 #include <iostream>
 #include <random>
 
-Solution<NeuralNetwork>* best = nullptr;
+Solution best;
 
 void killHandler(int signum)
 {
   cout << "received signal: " << signum << endl;
-  cout << "best mean error: " << best->err << endl;
-  for (auto t : best->nen.layout) {
-    cout << t << " ";
-  }
+  cout << "best mean error: " << best.err << endl;
   cout << endl;
-  for (auto d : best->nen.params) {
+  for (auto d : best.sol) {
     cout << d << " ";
   }
   cout << endl;
@@ -39,16 +36,19 @@ int main(int argc, char** argv)
   Dataset set(datasetPath.c_str());
 
   vector<unsigned int> layout({ 2, 8, 4, 3 });
+  NeuralNetwork ann(layout);
 
-  const unsigned int populationSize = 20;
+  const unsigned int populationSize = 5;
   const unsigned int maxIter = 100000;
 
   //initialize population
-  vector<Solution<NeuralNetwork> > population;
+  vector<Solution> population;
   population.reserve(populationSize);
 
   for (unsigned int i = 0; i < populationSize; ++i) {
-    population.push_back(Solution<NeuralNetwork>(NeuralNetwork(layout), set));
+    population.push_back(Solution(ann.size));
+    population.back().err = ann.calcError(set, population.back().sol);
+    population.back().fit = 1 / population.back().err;
   }
 
   //mutate operator
@@ -56,21 +56,23 @@ int main(int argc, char** argv)
 
   for (unsigned int currentIter = 0; currentIter < maxIter; ++currentIter) {
 
-    scaleFitness(population, &best);
-    vector<Solution<NeuralNetwork> > nextGen;
+    scaleFitness(population, best);
+    vector<Solution> nextGen;
     nextGen.reserve(populationSize);
 
-    cout << "iter: " << currentIter << ", best MSE : " << best->err << endl;
+    cout << "iter: " << currentIter << ", best MSE : " << best.err << endl;
 
-    nextGen.push_back(*best);
+    nextGen.push_back(best);
 
     while (nextGen.size() != populationSize) {
       auto mom = select(population);
       auto dad = select(population);
       //TODO
-      auto childGenom = mom.nen.params * dad.nen.params;
-      mutate(childGenom);
-      nextGen.push_back(Solution<NeuralNetwork>(NeuralNetwork(childGenom, layout), set));
+      auto child = mom * dad;
+      mutate(child.sol);
+      child.err = ann.calcError(set, child.sol);
+      child.fit = 1 / child.err;
+      nextGen.push_back(child);
     }
 
     population = nextGen;

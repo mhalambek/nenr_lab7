@@ -10,14 +10,6 @@
 
 using namespace std;
 
-double getRandDouble()
-{
-  static random_device dev;
-  static auto dis = uniform_real_distribution<>(-2.0, 2.0);
-
-  return dis(dev);
-}
-
 class NeuralNetwork {
   private:
   void makeNetwork()
@@ -35,6 +27,8 @@ class NeuralNetwork {
         lastIndex += layout[i - 1] + 1;
       }
     }
+
+    size = totalSize();
   };
 
   unsigned int totalSize() const
@@ -52,7 +46,8 @@ class NeuralNetwork {
   vector<unsigned int> layout;
   vector<RBFNeuron> secondLayer;
   vector<vector<SigmoidNeuron> > otherLayers;
-  // vector<double> params;
+  unsigned int size;
+
   NeuralNetwork(const char* filePath)
   {
     ifstream fileStream(filePath);
@@ -68,18 +63,11 @@ class NeuralNetwork {
     getline(fileStream, line);
     fin = istringstream(line);
 
-    double d;
-    while (!fin.eof()) {
-      fin >> d;
-      params.push_back(d);
-    }
-
     makeNetwork();
   };
 
   NeuralNetwork(const NeuralNetwork& ann)
       : layout{ ann.layout }
-      , params{ ann.params }
   {
     makeNetwork();
   };
@@ -91,24 +79,10 @@ class NeuralNetwork {
     assert(layout[0] == 2);
     assert(layout.back() == 3);
 
-    unsigned int weightCount = totalSize();
-
-    params.reserve(weightCount * sizeof(double));
-    for (unsigned int i = 0; i < weightCount; ++i) {
-      params.push_back(getRandDouble());
-    }
-
     makeNetwork();
   };
 
-  NeuralNetwork(vector<double> params, vector<unsigned int> layout)
-      : layout{ layout }
-      , params{ params }
-  {
-    makeNetwork();
-  };
-
-  vector<double> operator()(double x, double y) const
+  vector<double> operator()(double x, double y, const vector<double>& params) const
   {
     vector<double> in({ x, y });
 
@@ -134,12 +108,12 @@ class NeuralNetwork {
     return in;
   };
 
-  double calcError(const Dataset& set) const
+  double calcError(const Dataset& set, const vector<double>& params) const
   {
     double ret = 0;
 
     for (const auto& s : set) {
-      auto o = (*this)(s.x, s.y);
+      auto o = (*this)(s.x, s.y, params);
 
       ret += pow(((double)s.A - o[0]), 2);
       ret += pow(((double)s.B - o[1]), 2);
