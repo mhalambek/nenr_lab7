@@ -52,7 +52,7 @@ class NeuralNetwork {
   vector<unsigned int> layout;
   vector<RBFNeuron> secondLayer;
   vector<vector<SigmoidNeuron> > otherLayers;
-  vector<double> params;
+  // vector<double> params;
   NeuralNetwork(const char* filePath)
   {
     ifstream fileStream(filePath);

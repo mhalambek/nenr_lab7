@@ -7,7 +7,7 @@
 #include <iostream>
 #include <random>
 
-Solution* best = nullptr;
+Solution<NeuralNetwork>* best = nullptr;
 
 void killHandler(int signum)
 {
@@ -44,11 +44,11 @@ int main(int argc, char** argv)
   const unsigned int maxIter = 100000;
 
   //initialize population
-  vector<Solution> population;
+  vector<Solution<NeuralNetwork> > population;
   population.reserve(populationSize);
 
   for (unsigned int i = 0; i < populationSize; ++i) {
-    population.push_back(Solution(NeuralNetwork(layout), set));
+    population.push_back(Solution<NeuralNetwork>(NeuralNetwork(layout), set));
   }
 
   //mutate operator
@@ -57,7 +57,7 @@ int main(int argc, char** argv)
   for (unsigned int currentIter = 0; currentIter < maxIter; ++currentIter) {
 
     scaleFitness(population, &best);
-    vector<Solution> nextGen;
+    vector<Solution<NeuralNetwork> > nextGen;
     nextGen.reserve(populationSize);
 
     cout << "iter: " << currentIter << ", best MSE : " << best->err << endl;
@@ -70,7 +70,7 @@ int main(int argc, char** argv)
       //TODO
       auto childGenom = mom.nen.params * dad.nen.params;
       mutate(childGenom);
-      nextGen.push_back(Solution(NeuralNetwork(childGenom, layout), set));
+      nextGen.push_back(Solution<NeuralNetwork>(NeuralNetwork(childGenom, layout), set));
     }
 
     population = nextGen;

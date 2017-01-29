@@ -47,19 +47,20 @@ class Mutate {
   };
 };
 
-void scaleFitness(vector<Solution>& pop, Solution** best)
+template <typename S>
+void scaleFitness(vector<Solution<S> >& pop, Solution<S>** best)
 {
   double sum = 0,
          min = std::numeric_limits<double>::max();
 
   if (*best == nullptr) {
-    *best = new Solution(NeuralNetwork(pop.front().nen.params, pop.front().nen.layout), pop.front().err);
+    *best = new Solution<S>(NeuralNetwork(pop.front().nen.params, pop.front().nen.layout), pop.front().err);
   }
 
   for (auto& s : pop) {
     if (s.err < (*best)->err) {
       free(*best);
-      *best = new Solution(s.nen, s.err);
+      *best = new Solution<S>(s.nen, s.err);
     }
     sum += s.fit;
     if (s.fit < min) {
@@ -74,7 +75,8 @@ void scaleFitness(vector<Solution>& pop, Solution** best)
   }
 }
 
-const Solution& select(const vector<Solution>& pop)
+template <typename S>
+const Solution<S>& select(const vector<Solution<S> >& pop)
 {
   static random_device dev;
   static auto dis = uniform_real_distribution<double>(0, 1);
